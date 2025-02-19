@@ -1,6 +1,7 @@
 from requests import get
 from PyQt5.QtWidgets import (
-    QApplication, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget, QHBoxLayout, QFrame, QMessageBox, QInputDialog
+    QApplication, QLabel, QLineEdit, QPushButton, QVBoxLayout, 
+    QWidget, QHBoxLayout, QFrame, QMessageBox, QInputDialog
 )
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import Qt
@@ -11,8 +12,91 @@ import random
 
 # Constantes
 BASE_URL = "https://pokeapi.co/api/v2/"
-ALL_POKE = "pokemon/"
+ALL_POKE = "pokemon"
 
+
+        # Tabla de ventajas de tipo
+type_advantage = {
+            "normal": {
+                "normal": 1, "fire": 1, "water": 1, "grass": 1, "electric": 1, "ice": 1, "fighting": 1,
+                "poison": 1, "ground": 1, "flying": 1, "psychic": 1, "bug": 1, "rock": 0.5, "ghost": 0,
+                "dragon": 1, "dark": 1, "steel": 0.5, "fairy": 1
+            },
+            "fire": {
+                "normal": 1, "fire": 0.5, "water": 0.5, "grass": 2, "electric": 1, "ice": 2, "fighting": 1,
+                "poison": 1, "ground": 1, "flying": 1, "psychic": 1, "bug": 2, "rock": 0.5, "ghost": 1,
+                "dragon": 0.5, "dark": 1, "steel": 2, "fairy": 1
+            },
+            "water": {
+                "normal": 1, "fire": 2, "water": 0.5, "grass": 0.5, "electric": 1, "ice": 1, "fighting": 1,
+                "poison": 1, "ground": 2, "flying": 1, "psychic": 1, "bug": 1, "rock": 2, "ghost": 1,
+                "dragon": 0.5, "dark": 1, "steel": 1, "fairy": 1
+            },
+            "grass": {
+                "normal": 1, "fire": 0.5, "water": 2, "grass": 0.5, "electric": 1, "ice": 1, "fighting": 1,
+                "poison": 0.5, "ground": 2, "flying": 0.5, "psychic": 1, "bug": 0.5, "rock": 2, "ghost": 1,
+                "dragon": 0.5, "dark": 1, "steel": 0.5, "fairy": 1
+            },
+            "electric": {
+                "normal": 1, "fire": 1, "water": 2, "grass": 0.5, "electric": 0.5, "ice": 1, "fighting": 1,
+                "poison": 1, "ground": 0, "flying": 2, "psychic": 1, "bug": 1, "rock": 1, "ghost": 1,
+                "dragon": 1, "dark": 1, "steel": 1, "fairy": 1
+            },
+            "ice": {
+                "normal": 1, "fire": 0.5, "water": 0.5, "grass": 2, "electric": 1, "ice": 0.5, "fighting": 1,
+                "poison": 1, "ground": 2, "flying": 2, "psychic": 1, "bug": 1, "rock": 1, "ghost": 1,
+                "dragon": 2, "dark": 1, "steel": 0.5, "fairy": 1
+            },
+            "fighting": {
+                "normal": 2, "fire": 1, "water": 1, "grass": 1, "electric": 1, "ice": 2, "fighting": 1,
+                "poison": 1, "ground": 1, "flying": 0.5, "psychic": 0.5, "bug": 0.5, "rock": 2, "ghost": 0,
+                "dragon": 1, "dark": 2, "steel": 2, "fairy": 0.5
+            },
+            "poison": {
+                "normal": 1, "fire": 1, "water": 1, "grass": 2, "electric": 1, "ice": 1, "fighting": 1,
+                "poison": 0.5, "ground": 0.5, "flying": 1, "psychic": 1, "bug": 1, "rock": 0.5, "ghost": 0.5,
+                "dragon": 1, "dark": 1, "steel": 0, "fairy": 2
+            },
+            "ground": {
+                "normal": 1, "fire": 2, "water": 1, "grass": 0.5, "electric": 2, "ice": 1, "fighting": 1,
+                "poison": 2, "ground": 1, "flying": 0, "psychic": 1, "bug": 1, "rock": 2, "ghost": 1,
+                "dragon": 1, "dark": 1, "steel": 2, "fairy": 1
+            },
+            "flying": {
+                "normal": 1, "fire": 1, "water": 1, "grass": 2, "electric": 0.5, "ice": 1, "fighting": 2,
+                "poison": 1, "ground": 1, "flying": 1, "psychic": 1, "bug": 2, "rock": 0.5, "ghost": 1,
+                "dragon": 1, "dark": 1, "steel": 0.5, "fairy": 1
+            },
+            "psychic": {
+                "normal": 1, "fire": 1, "water": 1, "grass": 1, "electric": 1, "ice": 1, "fighting": 2,
+                "poison": 2, "ground": 1, "flying": 1, "psychic": 0.5, "bug": 1, "rock": 1, "ghost": 0,
+                "dragon": 1, "dark": 0, "steel": 0.5, "fairy": 1
+            },
+            "bug": {
+                "normal": 1, "fire": 0.5, "water": 1, "grass": 0.5, "electric": 1, "ice": 1, "fighting": 0.5,
+                "poison": 0.5, "ground": 1, "flying": 0.5, "psychic": 2, "bug": 1, "rock": 1, "ghost": 0.5,
+                "dragon": 1, "dark": 2, "steel": 0.5, "fairy": 0.5
+            },
+            "rock": {
+                "normal": 1, "fire": 2, "water": 1, "grass": 2, "electric": 1, "ice": 2, "fighting": 0.5,
+                "poison": 1, "ground": 0.5, "flying": 2, "psychic": 1, "bug": 2, "rock": 1, "ghost": 1,
+                "dragon": 1, "dark": 1, "steel": 0.5, "fairy": 1
+            },
+            "ghost": {
+                "normal": 0, "fire": 1, "water": 1, "grass": 1, "electric": 1, "ice": 1, "fighting": 1,
+                "poison": 1, "ground": 1, "flying": 1, "psychic": 2, "bug": 1, "rock": 1, "ghost": 2,
+                "dragon": 1, "dark": 0, "steel": 1, "fairy": 1
+            },
+            "dragon": {
+                "normal": 1, "fire": 1, "water": 1, "grass": 1, "electric": 1, "ice": 1, "fighting": 1,
+                "poison": 1, "ground": 1, "flying": 1, "psychic": 1, "bug": 1, "rock": 1, "ghost": 1,
+                "dragon": 2, "dark": 1, "steel": 0.5, "fairy": 0
+            },
+            "dark": {
+                "normal": 1, "fire": 1, "water": 1, "grass": 1, "electric": 1, "ice": 1, "fighting": 0.5,
+                "poison": 1, "ground": 1, "flying": 1, "psychic": 2, "bug": 1, "rock": 1, "ghost": 2,
+                "dragon": 1, "dark": 0.5, "steel": 1, "fairy": 0.5
+            },}
 def get_specific_pokemon(identifier):
     """
     Obtiene información detallada de un Pokémon específico por nombre o número.
@@ -34,12 +118,42 @@ def get_specific_pokemon(identifier):
             "weight": pokemon_data["weight"],
             "image_url": pokemon_data["sprites"]["front_default"],
             "back_image_url": pokemon_data["sprites"].get("back_default", ""),
-            "stats": stats  # Agregar las estadísticas
+            "stats": stats,
         }
         return pokemon_info
     except Exception as e:
         print(f"Error fetching data for Pokémon '{identifier}': {e}")
         return None
+
+def get_pokemon_moves(identifier):
+    """Obtiene la lista de movimientos de un Pokémon."""
+    try:
+        response = get(f"{BASE_URL}pokemon/{identifier}/")
+        response.raise_for_status()
+        pokemon_data = response.json()
+
+        # Extraer los movimientos del Pokémon
+        moves = [move["move"]["name"] for move in pokemon_data["moves"]]
+        return moves
+
+    except requests.exceptions.HTTPError as e:
+        print(f"Error al obtener los movimientos del Pokémon {identifier}: {e}")
+        return None
+
+    except Exception as e:
+        print(f"Error desconocido al obtener los movimientos del Pokémon {identifier}: {e}")
+        return None
+
+def get_move_power(move_name):
+    """Obtiene el poder de un movimiento desde la API."""
+    try:
+        response = get(f"{BASE_URL}move/{move_name}/")
+        response.raise_for_status()
+        move_data = response.json()
+        return move_data.get("power", 0)  # Si no tiene poder, devuelve 0
+    except Exception as e:
+        print(f"Error al obtener detalles del movimiento {move_name}: {e}")
+        return 0  # Valor por defecto en caso de error
 
 class PokedexApp(QWidget):
     def __init__(self):
@@ -47,18 +161,39 @@ class PokedexApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle("Simulator Battle of Pokemon")
+        self.setWindowTitle("Pokemon Battle Simulator")
         self.setGeometry(100, 100, 400, 600)
 
         # Aplicar estilo Pokédex
-        self.setStyleSheet("background-color: red; border: 5px solid black; border-radius: 15px;")
+        self.setStyleSheet("""
+                           QInputDialog {
+                                background-color: black;
+                                border: 2px solid black;
+                                border-radius: 5px;
+                                padding: 5px;
+                            }
+                            QPushButton {
+                                background-color: red;
+                                color: white;
+                                border: 2px solid white;
+                                border-radius: 10px;
+                                padding: 10px;
+                            }
+                            QPushButton:hover {
+                                background-color: #000;  /* Color al pasar el ratón */
+                            }
+                            QPushButton:pressed {
+                                background-color: #000;  /* Color cuando el botón es presionado */
+                            }
+                            """
+                            "color: black; background-color: red; border: 2px solid black; padding: 10px; border-radius: 5px;")
 
         self.layout = QVBoxLayout()
 
-        self.header = QLabel("Simulator Battle of Pokemon", self)
+        self.header = QLabel("Pokemon Battle Simulator", self)
         self.header.setFont(QFont("Arial", 20, QFont.Bold))
         self.header.setAlignment(Qt.AlignCenter)
-        self.header.setStyleSheet("color: white; background-color: black; padding: 10px; border-radius: 10px;")
+        self.header.setStyleSheet("color: white; background-color: black; padding: 5px; border-radius: 10px;")
         self.layout.addWidget(self.header)
 
         self.search_input = QLineEdit(self)
@@ -122,20 +257,14 @@ class PokedexApp(QWidget):
             self.info_label.setText("<b>Pokemon not found</b>")
 
     def simulate_battle(self):
-        """
-        Simula una batalla entre dos Pokémon.
-        """
-        # Limpiar el layout de batalla anterior
         self.clear_battle_layout()
 
-        # Obtener los nombres o números de los Pokémon
-        poke1, ok1 = QInputDialog.getText(self, "Pokémon 1", "<span style='color:black;background-color:white;'>Ingrese el nombre o número del primer Pokémon:</span>")
-        poke2, ok2 = QInputDialog.getText(self, "Pokémon 2", "<span style='color:black;background-color:white;'>Ingrese el nombre o número del segundo Pokémon:</span>")
+        poke1, ok1 = QInputDialog.getText(self, "Pokémon 1", "Ingrese el nombre o número del primer Pokémon:")
+        poke2, ok2 = QInputDialog.getText(self, "Pokémon 2", "Ingrese el nombre o número del segundo Pokémon:")
 
         if not ok1 or not ok2:
             return
 
-        # Obtener información de los Pokémon
         pokemon1 = get_specific_pokemon(poke1.strip().lower())
         pokemon2 = get_specific_pokemon(poke2.strip().lower())
 
@@ -143,12 +272,49 @@ class PokedexApp(QWidget):
             QMessageBox.warning(self, "Error", "No se pudo obtener información de uno o ambos Pokémon.")
             return
 
-        # Mostrar imágenes de la batalla
+        moves1 = get_pokemon_moves(poke1.strip().lower())
+        moves2 = get_pokemon_moves(poke2.strip().lower())
+
+        if moves1 is None or moves2 is None:
+            QMessageBox.warning(self, "Error", "No se pudieron obtener los movimientos de uno o ambos Pokémon.")
+            return
+
         self.show_battle_images(pokemon1, pokemon2)
 
-        # Determinar el ganador
-        winner = self.determine_winner(pokemon1, pokemon2)
+        # Simular batalla por turnos
+        battle_log = []  # Para almacenar los eventos de la batalla
+        hp1 = pokemon1["stats"].get("hp", 100)  # Usar HP real si está disponible
+        hp2 = pokemon2["stats"].get("hp", 100)
+
+        while hp1 > 0 and hp2 > 0:
+            # Turno del Pokémon 1
+            move1 = random.choice(moves1)
+            damage1 = self.calculate_damage(pokemon1, pokemon2, move1)
+            hp2 -= damage1
+            battle_log.append(f"{pokemon1['name'].capitalize()} usa {move1}. ¡Hace {damage1} de daño!")
+
+            if hp2 <= 0:
+                break
+
+            # Turno del Pokémon 2
+            move2 = random.choice(moves2)
+            damage2 = self.calculate_damage(pokemon2, pokemon1, move2)
+            hp1 -= damage2
+            battle_log.append(f"{pokemon2['name'].capitalize()} usa {move2}. ¡Hace {damage2} de daño!")
+
+        # Mostrar el resultado de la batalla
+        winner = pokemon1 if hp1 > hp2 else pokemon2 if hp2 > hp1 else None
         self.show_winner(winner)
+
+        # Mostrar el registro de la batalla
+        battle_log_text = "\n".join(battle_log)
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Registro de Batalla")
+        msg_box.setText(battle_log_text)
+        msg_box.setStyleSheet("""background-color: red; color: white; border: 2px solid red;""")
+        btn_ok = msg_box.addButton("Aceptar", QMessageBox.AcceptRole)
+        btn_ok.setStyleSheet("background-color: black; color: white; border-radius: 5px; padding: 5px;")
+        msg_box.exec_()
 
     def clear_battle_layout(self):
         """
@@ -203,54 +369,78 @@ class PokedexApp(QWidget):
         # Agregar los contenedores al layout de batalla
         self.battle_layout.addWidget(container1_widget)  # Agregar el widget del contenedor
         self.battle_layout.addWidget(container2_widget)  # Agregar el widget del contenedor
+  
+    def determine_winner(self, pokemon1, pokemon2, moves1, moves2):
+        """Simulación de batalla más realista."""
 
-    def determine_winner(self, pokemon1, pokemon2):
-        """
-        Determina el ganador de la batalla basado en las estadísticas y ventajas de tipo.
-        """
+        # Simulación simplificada por turnos (ejemplo básico)
+        hp1 = sum(pokemon1["stats"].values())  # Puntos de salud iniciales (simplificado)
+        hp2 = sum(pokemon2["stats"].values())
 
-        # Tabla de ventajas de tipo
-        type_advantage = {
-            "fire": ["grass", "ice", "bug", "steel"],
-            "water": ["fire", "ground", "rock"],
-            "grass": ["water", "ground", "rock"],
-            "electric": ["water", "flying"],
-            "ice": ["grass", "ground", "flying", "dragon"],
-            "fighting": ["normal", "ice", "rock", "dark", "steel"],
-            "poison": ["grass", "fairy"],
-            "ground": ["fire", "electric", "poison", "rock", "steel"],
-            "flying": ["grass", "fighting", "bug"],
-            "psychic": ["fighting", "poison"],
-            "bug": ["grass", "psychic", "dark"],
-            "rock": ["fire", "ice", "flying", "bug"],
-            "ghost": ["psychic", "ghost"],
-            "dragon": ["dragon"],
-            "dark": ["psychic", "ghost"],
-            "steel": ["ice", "rock", "fairy"],
-            "fairy": ["fighting", "dragon", "dark"]
-        }
+        while hp1 > 0 and hp2 > 0:
+            # Turno del pokemon1
+            move1 = random.choice(moves1)  # Elige un movimiento aleatorio
+            damage1 = self.calculate_damage(pokemon1, pokemon2, move1)
+            hp2 -= damage1
 
-        # Obtener estadísticas totales de cada Pokémon
-        total_stats1 = sum(pokemon1["stats"].values())
-        total_stats2 = sum(pokemon2["stats"].values())
+            if hp2 <= 0:
+                break  # pokemon1 gana
 
-        # Comprobar ventajas de tipo
-        advantage1 = any(t in type_advantage.get(pokemon1["types"][0], []) for t in pokemon2["types"])
-        advantage2 = any(t in type_advantage.get(pokemon2["types"][0], []) for t in pokemon1["types"])
+            # Turno del pokemon2
+            move2 = random.choice(moves2)  # Elige un movimiento aleatorio
+            damage2 = self.calculate_damage(pokemon2, pokemon1, move2)
+            hp1 -= damage2
 
-        # Aplicar bonificación por ventaja de tipo (10% más de estadísticas)
-        if advantage1 and not advantage2:
-            total_stats1 *= 1.1
-        elif advantage2 and not advantage1:
-            total_stats2 *= 1.1
+            if hp1 <= 0:
+                break  # pokemon2 gana
 
-        # Determinar ganador
-        if total_stats1 > total_stats2:
+        if hp1 > hp2:
             return pokemon1
-        elif total_stats2 > total_stats1:
+        elif hp2 > hp1:
             return pokemon2
         else:
             return None  # Empate
+        
+    def calculate_damage(self, attacker, defender, move):
+        """Calcula el daño de un movimiento de manera más realista."""
+        try:
+            # Obtener el poder del movimiento
+            power = get_move_power(move)
+
+            # Si el movimiento no tiene poder, es un movimiento de estado y no hace daño
+            if power == 0:
+                return 0
+
+            # Obtener el tipo del movimiento
+            move_response = get(f"{BASE_URL}move/{move}/")
+            move_response.raise_for_status()
+            move_data = move_response.json()
+            move_type = move_data["type"]["name"]
+
+            # Obtener los tipos del defensor
+            defender_types = defender["types"]
+
+            # Calcular el multiplicador de tipo
+            type_multiplier = 1
+            for defender_type in defender_types:
+                type_multiplier *= type_advantage.get(move_type, {}).get(defender_type, 1)
+
+            # Estadísticas del atacante y defensor
+            attack = attacker["stats"].get("attack", 50)  # Ataque del atacante
+            defense = defender["stats"].get("defense", 50)  # Defensa del defensor
+
+            # Factor aleatorio entre 0.85 y 1.0 para simular variabilidad
+            random_factor = random.uniform(0.85, 1.0)
+
+            # Fórmula de daño simplificada (similar a los juegos de Pokémon)
+            damage = (((2 * 50 / 5 + 2) * power * (attack / defense) / 50 + 2) * type_multiplier * random_factor)
+
+            return int(damage) if damage > 0 else 1  # Mínimo 1 de daño
+
+        except Exception as e:
+            print(f"Error al calcular el daño del movimiento {move}: {e}")
+            return 10
+
 
     def show_winner(self, winner):
         """
@@ -297,3 +487,4 @@ if __name__ == "__main__":
     window = PokedexApp()
     window.show()
     sys.exit(app.exec_())
+
