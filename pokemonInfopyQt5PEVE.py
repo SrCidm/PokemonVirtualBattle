@@ -257,8 +257,8 @@ class PokedexApp(QWidget):
             info_text = (f"<b>Name:</b> {pokemon['name'].capitalize()}<br>"
                          f"<b>Number:</b> {pokemon['number']}<br>"
                          f"<b>Types:</b> {', '.join(pokemon['types'])}<br>"
-                         f"<b>Height:</b> {pokemon['height']} decímetros<br>"
-                         f"<b>Weight:</b> {pokemon['weight']} hectogramos<br>"
+                         f"<b>Height:</b> {pokemon['height']/10} mts<br>"
+                         f"<b>Weight:</b> {pokemon['weight']/10} kg<br>"
                          f"<b>Abilitys:</b> {', '.join(pokemon['abilities'])}")
             self.info_label.setText(info_text)
         else:
