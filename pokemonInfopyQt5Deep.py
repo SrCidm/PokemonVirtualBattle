@@ -7,6 +7,7 @@ from PyQt5.QtCore import Qt
 import sys
 import requests
 from io import BytesIO
+import random
 
 # Constantes
 BASE_URL = "https://pokeapi.co/api/v2/"
@@ -205,11 +206,45 @@ class PokedexApp(QWidget):
 
     def determine_winner(self, pokemon1, pokemon2):
         """
-        Determina el ganador de la batalla basado en las estadísticas.
+        Determina el ganador de la batalla basado en las estadísticas y ventajas de tipo.
         """
+
+        # Tabla de ventajas de tipo
+        type_advantage = {
+            "fire": ["grass", "ice", "bug", "steel"],
+            "water": ["fire", "ground", "rock"],
+            "grass": ["water", "ground", "rock"],
+            "electric": ["water", "flying"],
+            "ice": ["grass", "ground", "flying", "dragon"],
+            "fighting": ["normal", "ice", "rock", "dark", "steel"],
+            "poison": ["grass", "fairy"],
+            "ground": ["fire", "electric", "poison", "rock", "steel"],
+            "flying": ["grass", "fighting", "bug"],
+            "psychic": ["fighting", "poison"],
+            "bug": ["grass", "psychic", "dark"],
+            "rock": ["fire", "ice", "flying", "bug"],
+            "ghost": ["psychic", "ghost"],
+            "dragon": ["dragon"],
+            "dark": ["psychic", "ghost"],
+            "steel": ["ice", "rock", "fairy"],
+            "fairy": ["fighting", "dragon", "dark"]
+        }
+
+        # Obtener estadísticas totales de cada Pokémon
         total_stats1 = sum(pokemon1["stats"].values())
         total_stats2 = sum(pokemon2["stats"].values())
 
+        # Comprobar ventajas de tipo
+        advantage1 = any(t in type_advantage.get(pokemon1["types"][0], []) for t in pokemon2["types"])
+        advantage2 = any(t in type_advantage.get(pokemon2["types"][0], []) for t in pokemon1["types"])
+
+        # Aplicar bonificación por ventaja de tipo (10% más de estadísticas)
+        if advantage1 and not advantage2:
+            total_stats1 *= 1.1
+        elif advantage2 and not advantage1:
+            total_stats2 *= 1.1
+
+        # Determinar ganador
         if total_stats1 > total_stats2:
             return pokemon1
         elif total_stats2 > total_stats1:
