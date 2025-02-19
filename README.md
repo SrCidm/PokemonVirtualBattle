@@ -2,6 +2,7 @@
 
 Welcome to the **Pokémon Battle Simulator**! This project uses **PyQt5** to create a graphical user interface (GUI) that allows you to search for Pokémon, view their stats, and simulate battles between two Pokémon. The application leverages the [PokéAPI](https://pokeapi.co/) to fetch Pokémon data and provides a fun and interactive way to explore the Pokémon universe.
 
+[frontPokemon](sc/front.png)
 ---
 
 ## Features
@@ -68,6 +69,8 @@ python pokemonInfopyQt5Deep.py
     Enter the names or numbers of two Pokémon.
 
     Watch the battle unfold in a turn-based simulation, complete with    damage calculations and a battle log.
+
+    [EvePokemon](sc/eve.png)
 
 ## Code Structure
     The project is organized as follows:
