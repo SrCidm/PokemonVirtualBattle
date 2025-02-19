@@ -9,12 +9,12 @@ import sys
 import requests
 from io import BytesIO
 import random
+import aiohttp
+import asyncio
 
 # Constantes
 BASE_URL = "https://pokeapi.co/api/v2/"
 ALL_POKE = "pokemon"
-
-
         # Tabla de ventajas de tipo
 type_advantage = {
             "normal": {
@@ -125,24 +125,33 @@ def get_specific_pokemon(identifier):
         print(f"Error fetching data for Pokémon '{identifier}': {e}")
         return None
 
+async def fetch_move(session, move_url):
+    """Obtiene los detalles de un movimiento y verifica si tiene 'power'."""
+    async with session.get(move_url) as response:
+        move_data = await response.json()
+        if move_data.get("power") and move_data["power"] > 0:
+            return move_data["name"]  # Solo devuelve el nombre si tiene power
+        return None
+
+async def get_pokemon_moves_async(identifier):
+    """Obtiene los movimientos de un Pokémon que tienen 'power' usando solicitudes asíncronas."""
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{BASE_URL}pokemon/{identifier}/") as response:
+            pokemon_data = await response.json()
+
+            # Obtener todas las URLs de movimientos
+            move_urls = [move["move"]["url"] for move in pokemon_data["moves"]]
+
+            # Hacer todas las peticiones en paralelo
+            tasks = [fetch_move(session, url) for url in move_urls]
+            moves = await asyncio.gather(*tasks)
+
+            # Filtrar None (movimientos sin power)
+            return [move for move in moves if move]
+
 def get_pokemon_moves(identifier):
-    """Obtiene la lista de movimientos de un Pokémon."""
-    try:
-        response = get(f"{BASE_URL}pokemon/{identifier}/")
-        response.raise_for_status()
-        pokemon_data = response.json()
-
-        # Extraer los movimientos del Pokémon
-        moves = [move["move"]["name"] for move in pokemon_data["moves"]]
-        return moves
-
-    except requests.exceptions.HTTPError as e:
-        print(f"Error al obtener los movimientos del Pokémon {identifier}: {e}")
-        return None
-
-    except Exception as e:
-        print(f"Error desconocido al obtener los movimientos del Pokémon {identifier}: {e}")
-        return None
+    """Función de entrada para ejecutar la versión asíncrona."""
+    return asyncio.run(get_pokemon_moves_async(identifier))
 
 def get_move_power(move_name):
     """Obtiene el poder de un movimiento desde la API."""
@@ -152,7 +161,7 @@ def get_move_power(move_name):
         move_data = response.json()
         return move_data.get("power", 0)  # Si no tiene poder, devuelve 0
     except Exception as e:
-        print(f"Error al obtener detalles del movimiento {move_name}: {e}")
+        print(f"Error retrieving move details {move_name}: {e}")
         return 0  # Valor por defecto en caso de error
 
 class PokedexApp(QWidget):
@@ -197,7 +206,7 @@ class PokedexApp(QWidget):
         self.layout.addWidget(self.header)
 
         self.search_input = QLineEdit(self)
-        self.search_input.setPlaceholderText("Ingrese el nombre o número de Pokémon")
+        self.search_input.setPlaceholderText("Enter the name or number of the Pokemon")
         self.search_input.setStyleSheet("background-color: white; border: 2px solid black; border-radius: 5px; padding: 5px;")
         self.layout.addWidget(self.search_input)
 
@@ -207,7 +216,7 @@ class PokedexApp(QWidget):
         self.layout.addWidget(self.search_button)
 
         # Botón para simular batalla
-        self.battle_button = QPushButton("Simulator Battle", self)
+        self.battle_button = QPushButton("Virtual Battle", self)
         self.battle_button.setStyleSheet("background-color: black; color: white; border-radius: 5px; padding: 5px;")
         self.battle_button.clicked.connect(self.simulate_battle)
         self.layout.addWidget(self.battle_button)
@@ -248,7 +257,7 @@ class PokedexApp(QWidget):
             info_text = (f"<b>Name:</b> {pokemon['name'].capitalize()}<br>"
                          f"<b>Number:</b> {pokemon['number']}<br>"
                          f"<b>Types:</b> {', '.join(pokemon['types'])}<br>"
-                         f"<b>High:</b> {pokemon['height']} decímetros<br>"
+                         f"<b>Height:</b> {pokemon['height']} decímetros<br>"
                          f"<b>Weight:</b> {pokemon['weight']} hectogramos<br>"
                          f"<b>Abilitys:</b> {', '.join(pokemon['abilities'])}")
             self.info_label.setText(info_text)
@@ -259,8 +268,8 @@ class PokedexApp(QWidget):
     def simulate_battle(self):
         self.clear_battle_layout()
 
-        poke1, ok1 = QInputDialog.getText(self, "Pokémon 1", "Ingrese el nombre o número del primer Pokémon:")
-        poke2, ok2 = QInputDialog.getText(self, "Pokémon 2", "Ingrese el nombre o número del segundo Pokémon:")
+        poke1, ok1 = QInputDialog.getText(self, "Pokémon 1", "Enter the name or number of the first Pokémon:")
+        poke2, ok2 = QInputDialog.getText(self, "Pokémon 2", "Enter the name or number of the second Pokémon:")
 
         if not ok1 or not ok2:
             return
@@ -269,14 +278,14 @@ class PokedexApp(QWidget):
         pokemon2 = get_specific_pokemon(poke2.strip().lower())
 
         if not pokemon1 or not pokemon2:
-            QMessageBox.warning(self, "Error", "No se pudo obtener información de uno o ambos Pokémon.")
+            QMessageBox.warning(self, "Error", "Could not retrieve information for one or both Pokémon.")
             return
 
         moves1 = get_pokemon_moves(poke1.strip().lower())
         moves2 = get_pokemon_moves(poke2.strip().lower())
 
         if moves1 is None or moves2 is None:
-            QMessageBox.warning(self, "Error", "No se pudieron obtener los movimientos de uno o ambos Pokémon.")
+            QMessageBox.warning(self, "Error", "The moves for one or both Pokémon could not be retrieved.")
             return
 
         self.show_battle_images(pokemon1, pokemon2)
@@ -309,10 +318,10 @@ class PokedexApp(QWidget):
         # Mostrar el registro de la batalla
         battle_log_text = "\n".join(battle_log)
         msg_box = QMessageBox(self)
-        msg_box.setWindowTitle("Registro de Batalla")
+        msg_box.setWindowTitle("Battle Log")
         msg_box.setText(battle_log_text)
         msg_box.setStyleSheet("""background-color: red; color: white; border: 2px solid red;""")
-        btn_ok = msg_box.addButton("Aceptar", QMessageBox.AcceptRole)
+        btn_ok = msg_box.addButton("Accept", QMessageBox.AcceptRole)
         btn_ok.setStyleSheet("background-color: black; color: white; border-radius: 5px; padding: 5px;")
         msg_box.exec_()
 
@@ -408,17 +417,17 @@ class PokedexApp(QWidget):
             power = get_move_power(move)
 
             # Si el movimiento no tiene poder, es un movimiento de estado y no hace daño
-            if power == 0:
+            if power is None or power == 0:
                 return 0
 
             # Obtener el tipo del movimiento
             move_response = get(f"{BASE_URL}move/{move}/")
             move_response.raise_for_status()
             move_data = move_response.json()
-            move_type = move_data["type"]["name"]
+            move_type = move_data.get("type", {}).get("name", "normal")  # Usa "normal" como tipo por defecto si no se encuentra
 
             # Obtener los tipos del defensor
-            defender_types = defender["types"]
+            defender_types = defender.get("types", [])
 
             # Calcular el multiplicador de tipo
             type_multiplier = 1
@@ -438,8 +447,8 @@ class PokedexApp(QWidget):
             return int(damage) if damage > 0 else 1  # Mínimo 1 de daño
 
         except Exception as e:
-            print(f"Error al calcular el daño del movimiento {move}: {e}")
-            return 10
+            print(f"Error calculating the move damage. {move}: {e}")
+            return 10  # Daño por defecto en caso de error
 
 
     def show_winner(self, winner):
@@ -450,26 +459,26 @@ class PokedexApp(QWidget):
             pixmap = self.get_pixmap_from_url(winner["image_url"])
             self.image_label.setPixmap(pixmap)
             msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Ganador")
-            msg_box.setText(f"{winner['name'].capitalize()} gana la batalla!")
+            msg_box.setWindowTitle("Winner")
+            msg_box.setText(f"{winner['name'].capitalize()} Win the Battle!")
             msg_box.setStyleSheet("""
                 background-color: red;
                 color: white;
                 border: 2px solid red;
             """)
-            btn_ok = msg_box.addButton("Aceptar", QMessageBox.AcceptRole)
+            btn_ok = msg_box.addButton("Accept", QMessageBox.AcceptRole)
             btn_ok.setStyleSheet("background-color: black; color: white; border-radius: 5px; padding: 5px;")
             msg_box.exec_()
         else:
             msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Empate")
-            msg_box.setText(f"Termino la batalla en empate")
+            msg_box.setWindowTitle("Draw")
+            msg_box.setText(f"the battle ended in a draw!")
             msg_box.setStyleSheet("""
                 background-color: red;
                 color: white;
                 border: 2px solid red;
             """)
-            btn_ok = msg_box.addButton("Aceptar", QMessageBox.AcceptRole)
+            btn_ok = msg_box.addButton("Accept", QMessageBox.AcceptRole)
             btn_ok.setStyleSheet("background-color: black; color: white; border-radius: 5px; padding: 5px;")
             msg_box.exec_()
 
