@@ -300,7 +300,7 @@ class PokedexApp(QWidget):
             move1 = random.choice(moves1)
             damage1 = self.calculate_damage(pokemon1, pokemon2, move1)
             hp2 -= damage1
-            battle_log.append(f"{pokemon1['name'].capitalize()} usa {move1}. ¡Hace {damage1} de daño!")
+            battle_log.append(f"{pokemon1['name'].capitalize()} use {move1}. It causes {damage1} damage!")
 
             if hp2 <= 0:
                 break
@@ -309,7 +309,7 @@ class PokedexApp(QWidget):
             move2 = random.choice(moves2)
             damage2 = self.calculate_damage(pokemon2, pokemon1, move2)
             hp1 -= damage2
-            battle_log.append(f"{pokemon2['name'].capitalize()} usa {move2}. ¡Hace {damage2} de daño!")
+            battle_log.append(f"{pokemon2['name'].capitalize()} use {move2}. It causes {damage2} damage!")
 
         # Mostrar el resultado de la batalla
         winner = pokemon1 if hp1 > hp2 else pokemon2 if hp2 > hp1 else None
