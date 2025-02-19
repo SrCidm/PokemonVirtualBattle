@@ -30,6 +30,7 @@ python pokemonInfopyQt5PEVE.py
 ```
 
 ## Estructura del código
+
 get_specific_pokemon(identifier): Obtiene información detallada de un Pokémon específico.
 
 get_pokemon_moves(identifier): Obtiene los movimientos de un Pokémon que tienen poder.
