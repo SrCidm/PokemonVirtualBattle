@@ -1,56 +1,104 @@
-# Pokemon Stats
+# Pokémon Battle Simulator
 
-Este proyecto utiliza PyQt5 para crear una interfaz gráfica de usuario (GUI) que muestra estadísticas de Pokémon.
+Welcome to the **Pokémon Battle Simulator**! This project uses **PyQt5** to create a graphical user interface (GUI) that allows you to search for Pokémon, view their stats, and simulate battles between two Pokémon. The application leverages the [PokéAPI](https://pokeapi.co/) to fetch Pokémon data and provides a fun and interactive way to explore the Pokémon universe.
 
-## Requisitos
+---
 
-- Python 3.x
-- PyQt5
+## Features
 
-## Instalación
+- **Pokémon Search**: Enter the name or number of a Pokémon to retrieve detailed information, including its types, abilities, stats, and an image.
+- **Battle Simulation**: Simulate turn-based battles between two Pokémon. The app calculates damage based on types, moves, and stats.
+- **Interactive GUI**: A user-friendly interface designed with a Pokédex theme.
+- **Asynchronous Moves Fetching**: Efficiently retrieves Pokémon moves using asynchronous requests.
 
-1. Clona este repositorio:
-    ```bash
-    git clone https://github.com/tu_usuario/pokemon-stats.git
-    ```
-2. Navega al directorio del proyecto:
-    ```bash
-    cd pokemon-stats
-    ```
-3. Instala las dependencias:
-    ```bash
-    pip install -r requirements.txt
-    ```
+---
 
-## Uso
+## Requirements
 
-Ejecuta el script `pokemonInfopyQt5PEVE.py` para iniciar la aplicación:
+To run this application, you need:
+
+- **Python 3.7 or higher**.
+- The following Python libraries:
+  - `requests`
+  - `PyQt5`
+  - `aiohttp`
+  - `asyncio`
+
+You can install the dependencies by running:
+
 ```bash
-python pokemonInfopyQt5PEVE.py
+pip install requests PyQt5 aiohttp
+```
+## Installation
+1. Clone this repository:
+
+```bash
+git clone https://github.com/your-username/pokemon-battle-simulator.git
+```
+2. Navigate to the project directory:
+
+```bash
+cd pokemon-battle-simulator
+```
+3. Install the required dependencies:
+
+```bash
+pip install -r requirements.txt
 ```
 
-## Estructura del código
+## Usage
 
-get_specific_pokemon(identifier): Obtiene información detallada de un Pokémon específico.
+Run the script pokemonInfopyQt5Deep.py to start the application:
 
-get_pokemon_moves(identifier): Obtiene los movimientos de un Pokémon que tienen poder.
+```bash
+python pokemonInfopyQt5Deep.py
+```
 
-get_move_power(move_name): Obtiene el poder de un movimiento específico.
+## How to Use the App
+1. Search for a Pokémon:
 
-PokedexApp: Clase principal que maneja la interfaz gráfica y la lógica de la aplicación.
+    Enter the name or number of a Pokémon in the search bar.
 
-simulate_battle(): Simula una batalla entre dos Pokémon.
+    Click "Find Pokemon" to view its details, including stats, types, abilities, and an image.
 
-calculate_damage(attacker, defender, move): Calcula el daño de un movimiento basado en tipos y estadísticas.
+2. Simulate a Battle:
 
-## Contribuciones
+    Click the "Virtual Battle" button.
 
-Las contribuciones son bienvenidas. Por favor, abre un issue o envía un pull request.
+    Enter the names or numbers of two Pokémon.
 
-## Licencia
+    Watch the battle unfold in a turn-based simulation, complete with    damage calculations and a battle log.
 
-Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
+## Code Structure
+    The project is organized as follows:
 
-## Contacto
+    get_specific_pokemon(identifier): Fetches detailed information about a specific Pokémon by name or number.
 
-Para cualquier consulta, puedes contactarme en [sergio.g.cid.m@gmail.com](sergio.g.cid.m@gmail.com).
+    get_pokemon_moves(identifier): Retrieves a list of moves for a Pokémon, filtering out moves without power.
+
+    get_move_power(move_name): Fetches the power of a specific move from the API.
+
+    PokedexApp: The main class that handles the GUI and application logic.
+
+    simulate_battle(): Simulates a battle between two Pokémon.
+
+    calculate_damage(attacker, defender, move): Calculates the damage of a move based on types and stats.
+
+## Contributing
+    Contributions are welcome! If you find any bugs or have suggestions for improvements, please open an issue or submit a pull request.
+
+    Fork the repository.
+
+    Create a new branch for your feature or bugfix.
+
+    Commit your changes and push them to your fork.
+
+    Open a pull request with a detailed description of your changes.
+
+## License
+    This project is licensed under the MIT License. See the LICENSE file for more details.
+
+## Contact
+    For any questions or feedback, feel free to reach out:
+
+    Email: sergio.g.cid.m@gmail.com
